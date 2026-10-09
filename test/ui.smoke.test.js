@@ -48,7 +48,7 @@ const isIdle = (d) =>
 /** Replay beli FS di engine — meniru runFreeSpinLoop di game.js */
 function replayBuy(seed, startNonce, lineBet, totalBet) {
   let nonce = startNonce;
-  let fsLeft = 10;
+  let fsLeft = 11; // 10 bayar + 1 bonus
   let played = 0;
   let win = 0;
   while (fsLeft > 0 && played < 50) {
@@ -96,8 +96,9 @@ test('UI boot: reels ter-render, HUD & paytable terisi', async () => {
     assert.equal(d.querySelectorAll('#autoCount option').length, 4);
     assert.equal(d.getElementById('autoBtn').textContent, 'Auto');
     assert.match(d.getElementById('buyFsBtn').textContent, /BELI FREESPIN/);
-    assert.match(d.getElementById('buyFsBtn').textContent, /1[.,]000/, 'harga 100x bet=1.000');
-    assert.match(d.getElementById('ruleBuy').textContent, /100× bet/, 'rule paytable terisi dinamis');
+    assert.match(d.getElementById('buyFsBtn').textContent, /20[.,]000/, 'harga tetap 20.000 koin');
+    assert.match(d.getElementById('ruleBuy').textContent, /20[.,]000 koin/, 'rule paytable terisi dinamis');
+    assert.match(d.getElementById('ruleBuy').textContent, /11 Free Spin/, '11 spin = 10 + 1 bonus');
     // skin slot Indonesia: jackpot bar & turbo ada
     assert.match(d.getElementById('jackpot').textContent, /[\d.]+/, 'jackpot bar terisi');
     assert.match(d.getElementById('turboBtn').textContent, /Turbo/);
@@ -297,10 +298,10 @@ test('tombol STOP menghentikan auto spin lebih awal', async () => {
   }
 });
 
-test('beli free spin: bayar 100x bet → 10 FS, kemenangan = replay engine', async () => {
+test('beli free spin: harga tetap 20.000 → 11 FS (10+1), kemenangan = replay engine', async () => {
   const SEED = 424242;
-  const START = 5000;
-  const COST = 100 * 10; // 100 x totalBet(10)
+  const START = 50000;
+  const COST = 20000; // harga tetap, tak ikut bet
   const dom = boot(SEED, START);
   try {
     const d = dom.window.document;
@@ -314,7 +315,7 @@ test('beli free spin: bayar 100x bet → 10 FS, kemenangan = replay engine', asy
     const expected = replayBuy(SEED, 0, 1, 10);
     assert.equal(num(d.getElementById('nonceText')), expected.nonce, 'jumlah spin FS = replay');
     assert.equal(num(d.getElementById('coins')), START - COST + expected.win);
-    assert.ok(expected.played >= 10, 'minimal 10 free spin termain');
+    assert.ok(expected.played >= 11, 'minimal 11 free spin termain (10 + 1 bonus)');
 
     // semua entri history = free spin (bet 0)
     const saved = JSON.parse(dom.window.localStorage.getItem('lollipop-arcade:v1'));

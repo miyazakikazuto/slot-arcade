@@ -9,18 +9,19 @@
   const E = window.SlotEngine;
   const STORAGE_KEY = 'lollipop-arcade:v1';
   const BET_LEVELS = [1, 2, 5, 10, 20]; // lineBet → totalBet = level x 10 payline
-  const START_COINS = 5000;
+  const START_COINS = 50000;
   const BONUS_AMOUNT = 500;
   const BONUS_COOLDOWN_MS = 60 * 1000;
   // Tambah koin = kredit demo GRATIS dengan cooldown (bukan top-up / pembayaran)
   const ADD_COINS_AMOUNT = 10000;
   const ADD_COINS_COOLDOWN_MS = 30 * 1000;
   const FREE_SPINS_CAP = 50;
-  // Beli Free Spin: bayar FS_BUY_MULT x totalBet → FS_BUY_SPINS free spin langsung.
-  // EV terukur 10 FS (dengan retrigger, 20k sampel) ≈ 157.7 x totalBet.
-  // Harga 100x → +EV pemain; sengaja ramah untuk demo (koin tak bernilai uang).
+  // Beli Free Spin: harga TETAP FS_BUY_PRICE koin (tak ikut bet) →
+  // FS_BUY_SPINS + FS_BUY_BONUS = 10 bayar + 1 bonus = 11 free spin langsung.
+  // EV terukur 10 FS (dengan retrigger, 20k sampel) ≈ 157.7 x totalBet → 11 FS ≈ 173x bet.
   const FS_BUY_SPINS = 10;
-  const FS_BUY_MULT = 100;
+  const FS_BUY_BONUS = 1;
+  const FS_BUY_PRICE = 20000;
   const FS_DELAY = 650;   // jeda antar free spin (ms)
   const AUTO_DELAY = 350; // jeda antar auto spin (ms)
 
@@ -321,7 +322,7 @@
   }
 
   function buyCost() {
-    return FS_BUY_MULT * totalBet();
+    return FS_BUY_PRICE; // harga tetap, tidak ikut bet
   }
 
   async function doBaseSpin() {
@@ -412,10 +413,11 @@
     setButtons(true);
     try {
       state.coins -= cost;
-      state.freeSpins = Math.min(FREE_SPINS_CAP, state.freeSpins + FS_BUY_SPINS);
+      const totalSpins = FS_BUY_SPINS + FS_BUY_BONUS;
+      state.freeSpins = Math.min(FREE_SPINS_CAP, state.freeSpins + totalSpins);
       updateHud();
       save();
-      toast('🎟️ BELI FREESPIN: +' + FS_BUY_SPINS + ' (−' + cost.toLocaleString('id-ID') + ')');
+      toast('🎟️ BELI FREESPIN: +' + totalSpins + ' spin (−' + cost.toLocaleString('id-ID') + ')');
       await runFreeSpinLoop();
     } finally {
       busy = false;
@@ -490,9 +492,10 @@
     $('ptableBody').innerHTML = rows.join('');
     const ruleBuy = $('ruleBuy');
     if (ruleBuy) {
-      ruleBuy.textContent = '🎟️ Beli Freespin: bayar ' + FS_BUY_MULT + '× bet (' +
-        buyCost().toLocaleString('id-ID') + ' koin di bet sekarang) → langsung ' +
-        FS_BUY_SPINS + ' Free Spin (retrigger tetap +3). Harga berubah ikut bet.';
+      ruleBuy.textContent = '🎟️ Beli Freespin: ' + FS_BUY_PRICE.toLocaleString('id-ID') +
+        ' koin (harga tetap, tak ikut bet) → ' + (FS_BUY_SPINS + FS_BUY_BONUS) +
+        ' Free Spin = ' + FS_BUY_SPINS + ' bayar + ' + FS_BUY_BONUS +
+        ' bonus (retrigger tetap +3).';
     }
   }
 
