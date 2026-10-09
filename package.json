@@ -1,0 +1,13 @@
+{
+  "name": "lollipop-arcade",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Slot arcade demo free-to-play (tanpa uang asli) — vanilla HTML/CSS/JS + pure engine",
+  "scripts": {
+    "test": "node --test",
+    "start": "npx --yes serve ."
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.2"
+  }
+}

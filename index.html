@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍭 Lollipop Arcade — Slot Demo Gratis</title>
+  <meta name="description" content="Game slot arcade free-to-play. Tanpa uang asli, tanpa deposit. Hanya untuk hiburan & belajar koding." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">🍭</span>
+      <div>
+        <h1>Lollipop Arcade</h1>
+        <p class="tagline">Slot demo gratis · tanpa uang asli · tanpa deposit</p>
+      </div>
+    </div>
+    <div class="hud">
+      <div class="hud-item coins">
+        <span class="hud-label">Koin</span>
+        <span id="coins" class="hud-value">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Bet / spin</span>
+        <span id="bet" class="hud-value">10</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Menang</span>
+        <span id="win" class="hud-value">0</span>
+      </div>
+    </div>
+  </header>
+
+  <div id="fsmode" class="fsmode hidden">🍀 FREE SPIN: <b id="fscount">0</b> tersisa</div>
+
+  <main class="stage">
+    <div id="reels" class="reels" aria-label="Grid permainan">
+      <!-- 5 reel x 3 baris, diisi game.js -->
+    </div>
+    <div id="paylineLayer" class="payline-layer"></div>
+    <div id="toast" class="toast hidden"></div>
+  </main>
+
+  <section class="controls">
+    <button id="betDown" class="btn btn-sec" title="Kurangi bet">−</button>
+    <button id="spinBtn" class="btn btn-spin">SPIN</button>
+    <button id="betUp" class="btn btn-sec" title="Naik bet">+</button>
+    <button id="betMax" class="btn btn-sec">MAX</button>
+    <button id="paytableBtn" class="btn btn-sec">Paytable</button>
+    <button id="bonusBtn" class="btn btn-bonus hidden">🎁 Klaim +500 koin</button>
+  </section>
+
+  <p id="hint" class="hint"></p>
+
+  <section class="panels">
+    <div class="panel">
+      <h2>Riwayat spin</h2>
+      <ul id="history" class="history"><li class="empty">Belum ada spin.</li></ul>
+    </div>
+    <div class="panel">
+      <h2>Transparansi RNG</h2>
+      <p class="rng-line">Seed: <code id="seedText">—</code></p>
+      <p class="rng-line">Nonce: <code id="nonceText">0</code></p>
+      <button id="resetSeed" class="btn btn-sec">Seed baru</button>
+      <p class="rng-note">Hasil tiap spin = hash(seed : nonce) → mulberry32. Anda bisa
+        mereproduksi hasil putaran dengan seed &amp; nonce yang sama (konsep provably-fair, untuk edukasi).</p>
+    </div>
+  </section>
+
+  <!-- Paytable modal -->
+  <div id="paytable" class="modal hidden">
+    <div class="modal-card">
+      <button id="paytableClose" class="modal-close">×</button>
+      <h2>Paytable</h2>
+      <table class="ptable">
+        <thead><tr><th>Simbol</th><th>3</th><th>4</th><th>5</th></tr></thead>
+        <tbody id="ptableBody"></tbody>
+      </table>
+      <ul class="rules">
+        <li>🍬 Menang minimal <b>3 beruntun dari kiri</b> pada 10 payline.</li>
+        <li>🌈 <b>WILD</b> menggantikan simbol apa pun (kecuali 🍭).</li>
+        <li>🍭 <b>SCATTER Lollipop</b> di posisi mana pun: 3/4/5 → bayar 4×/20×/100× bet +
+            Free Spin 5/8/12 (kemenangan ×2, retrigger +3).</li>
+        <li>Semua koin adalah <b>kredit demo</b> — tanpa uang asli, tanpa pembelian.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p><b>Game demo untuk hiburan &amp; belajar pemrograman.</b> Bukan judi: tidak ada deposit,
+      tarik dana, maupun uang asli. Koin tidak bisa diuangkan.</p>
+  </footer>
+
+  <script src="lib/engine.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
