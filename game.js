@@ -17,9 +17,10 @@
   const ADD_COINS_COOLDOWN_MS = 30 * 1000;
   const FREE_SPINS_CAP = 50;
   // Beli Free Spin: bayar FS_BUY_MULT x totalBet → FS_BUY_SPINS free spin langsung.
-  // EV terukur 10 FS (dengan retrigger, 20k sampel) ≈ 157.7 x totalBet → harga 170x (edge ~7%)
+  // EV terukur 10 FS (dengan retrigger, 20k sampel) ≈ 157.7 x totalBet.
+  // Harga 100x → +EV pemain; sengaja ramah untuk demo (koin tak bernilai uang).
   const FS_BUY_SPINS = 10;
-  const FS_BUY_MULT = 170;
+  const FS_BUY_MULT = 100;
   const FS_DELAY = 650;   // jeda antar free spin (ms)
   const AUTO_DELAY = 350; // jeda antar auto spin (ms)
 

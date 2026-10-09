@@ -96,8 +96,8 @@ test('UI boot: reels ter-render, HUD & paytable terisi', async () => {
     assert.equal(d.querySelectorAll('#autoCount option').length, 4);
     assert.equal(d.getElementById('autoBtn').textContent, 'Auto');
     assert.match(d.getElementById('buyFsBtn').textContent, /BELI FREESPIN/);
-    assert.match(d.getElementById('buyFsBtn').textContent, /1[.,]700/, 'harga 170x bet=1.700');
-    assert.match(d.getElementById('ruleBuy').textContent, /170× bet/, 'rule paytable terisi dinamis');
+    assert.match(d.getElementById('buyFsBtn').textContent, /1[.,]000/, 'harga 100x bet=1.000');
+    assert.match(d.getElementById('ruleBuy').textContent, /100× bet/, 'rule paytable terisi dinamis');
     // skin slot Indonesia: jackpot bar & turbo ada
     assert.match(d.getElementById('jackpot').textContent, /[\d.]+/, 'jackpot bar terisi');
     assert.match(d.getElementById('turboBtn').textContent, /Turbo/);
@@ -297,10 +297,10 @@ test('tombol STOP menghentikan auto spin lebih awal', async () => {
   }
 });
 
-test('beli free spin: bayar 170x bet → 10 FS, kemenangan = replay engine', async () => {
+test('beli free spin: bayar 100x bet → 10 FS, kemenangan = replay engine', async () => {
   const SEED = 424242;
   const START = 5000;
-  const COST = 170 * 10; // 170 x totalBet(10)
+  const COST = 100 * 10; // 100 x totalBet(10)
   const dom = boot(SEED, START);
   try {
     const d = dom.window.document;

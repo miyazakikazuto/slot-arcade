@@ -10,8 +10,9 @@ jackpot & koin di layar hanya angka demo, bukan uang.
 - **Spin manual** (klik / tombol Spasi) dengan bet 10–200 koin per spin (5 level).
 - **Auto spin** 10 / 25 / 50 / ∞ — berhenti otomatis saat koin kurang, tombol berubah jadi
   **STOP (n)**, bisa dihentikan kapan saja (tombol STOP atau Spasi).
-- **Beli Freespin**: bayar **170× bet** → langsung **10 Free Spin** (retrigger +3 tetap jalan).
-  Harga dibuat dari pengukuran EV: 10 FS ≈ **157,7× bet** (20k sampel) → house edge ~7%.
+- **Beli Freespin**: bayar **100× bet** → langsung **10 Free Spin** (retrigger +3 tetap jalan).
+  EV terukur 10 FS ≈ **157,7× bet** (20k sampel) → di harga 100× pemain dapat nilai lebih;
+  sengaja dibuat ramah karena ini demo (koin tak bernilai uang). Ubah via `FS_BUY_MULT`.
 - **⚡ Turbo**: percepat animasi reel & jeda antar spin (tombol toggle).
 - **Jackpot bar (DEMO)**: angka hiasan yang naik pelan — bukan uang, tidak bisa diuangkan.
 - Toast kemenangan ala slot: MENANG BESAR (≥5× bet), MEGA WIN (≥15×), JACKPOT (≥30×).
@@ -100,7 +101,7 @@ total = 42  →  P(SCATTER per posisi) = 2/42 ≈ 4.76%
 ### 2.6 Alur spin di UI
 ```
 klik SPIN / AUTO / Beli FS
-  → (manual) kurangi koin; (beli FS) kurangi 170× bet + 10 FS; (auto) loop sisa counter
+  → (manual) kurangi koin; (beli FS) kurangi 100× bet + 10 FS; (auto) loop sisa counter
   → hash(seed:nonce) → rng → engine.spin()
   → build strip visual (isi acak + hasil akhir) → animasi scroll per reel
     (stagger kiri→kanan, cubic-bezier) → await semua reel selesai
