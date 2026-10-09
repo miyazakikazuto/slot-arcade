@@ -12,6 +12,9 @@
   const START_COINS = 5000;
   const BONUS_AMOUNT = 500;
   const BONUS_COOLDOWN_MS = 60 * 1000;
+  // Tambah koin = kredit demo GRATIS dengan cooldown (bukan top-up / pembayaran)
+  const ADD_COINS_AMOUNT = 10000;
+  const ADD_COINS_COOLDOWN_MS = 30 * 1000;
   const FREE_SPINS_CAP = 50;
   // Beli Free Spin: bayar FS_BUY_MULT x totalBet → FS_BUY_SPINS free spin langsung.
   // EV terukur 10 FS (dengan retrigger, 20k sampel) ≈ 157.7 x totalBet → harga 170x (edge ~7%)
@@ -30,6 +33,7 @@
     freeSpins: 0,
     history: [],
     lastBonus: 0,
+    lastAddCoins: 0,
   });
 
   let state = load();
@@ -73,6 +77,7 @@
   const buyFsBtn = $('buyFsBtn');
   const turboBtn = $('turboBtn');
   const jackpotEl = $('jackpot');
+  const addCoinsBtn = $('addCoinsBtn');
 
   let turbo = false; // percepat animasi (gaya slot: tombol Turbo)
   const seedTextEl = $('seedText');
@@ -124,6 +129,13 @@
     buyFsBtn.textContent = 'BELI FREESPIN · ' + buyCost().toLocaleString('id-ID');
     buyFsBtn.disabled = busy || autoLeft !== null || state.coins < buyCost();
     autoCountEl.disabled = busy || autoLeft !== null;
+    // tombol tambah koin demo (dengan cooldown)
+    const sinceAdd = Date.now() - (state.lastAddCoins || 0);
+    const addReady = sinceAdd >= ADD_COINS_COOLDOWN_MS;
+    addCoinsBtn.disabled = !addReady;
+    addCoinsBtn.textContent = addReady
+      ? '🪙 TAMBAH KOIN +' + ADD_COINS_AMOUNT.toLocaleString('id-ID')
+      : '⏱ ' + Math.ceil((ADD_COINS_COOLDOWN_MS - sinceAdd) / 1000) + ' detik lagi';
     updateAutoBtn();
     updateBonusVisibility();
   }
@@ -433,6 +445,16 @@
     save();
   }
 
+  /** Tambah koin demo gratis (cooldown) — tanpa uang, tanpa pembayaran */
+  function addCoins() {
+    if (Date.now() - (state.lastAddCoins || 0) < ADD_COINS_COOLDOWN_MS) return;
+    state.lastAddCoins = Date.now();
+    state.coins += ADD_COINS_AMOUNT;
+    save();
+    updateHud();
+    toast('🪙 +' + ADD_COINS_AMOUNT.toLocaleString('id-ID') + ' koin demo!');
+  }
+
   function claimBonus() {
     if (Date.now() - (state.lastBonus || 0) <= BONUS_COOLDOWN_MS) return;
     state.lastBonus = Date.now();
@@ -516,6 +538,7 @@
       save();
     });
     bonusBtn.addEventListener('click', claimBonus);
+    addCoinsBtn.addEventListener('click', addCoins);
     $('resetSeed').addEventListener('click', resetSeed);
 
     $('paytableBtn').addEventListener('click', () => $('paytable').classList.remove('hidden'));
@@ -533,8 +556,8 @@
       }
     });
 
-    // cek lagi cooldown bonus
-    setInterval(updateBonusVisibility, 5000);
+    // refresh hitung mundur cooldown (bonus + tambah koin) tiap detik
+    setInterval(updateHud, 1000);
   }
 
   if (document.readyState === 'loading') {

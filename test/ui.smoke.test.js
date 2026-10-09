@@ -218,6 +218,33 @@ test('koin habis → tombol bonus gratis muncul & memberi +500', async () => {
   }
 });
 
+test('tambah koin: +10.000 koin demo, cooldown 30 detik', async () => {
+  const dom = boot(2, 1000);
+  try {
+    const w = dom.window;
+    const d = w.document;
+    await tick();
+
+    const btn = d.getElementById('addCoinsBtn');
+    assert.match(btn.textContent, /TAMBAH KOIN/);
+    assert.ok(!btn.disabled, 'siap dipakai saat belum pernah klaim');
+
+    btn.click();
+    assert.equal(num(d.getElementById('coins')), 11000, '+10.000 koin demo');
+    assert.ok(btn.disabled, 'tombol terkunci saat cooldown');
+    assert.match(btn.textContent, /detik lagi/, 'countdown tampil');
+
+    btn.click();
+    assert.equal(num(d.getElementById('coins')), 11000, 'klik saat cooldown tidak menambah');
+
+    const saved = JSON.parse(w.localStorage.getItem('lollipop-arcade:v1'));
+    assert.equal(saved.coins, 11000);
+    assert.ok(saved.lastAddCoins > 0, 'cooldown tersimpan di localStorage');
+  } finally {
+    dom.window.close();
+  }
+});
+
 test('auto spin 10x: jalan 10 spin, hasil = replay engine, berhenti rapi', async () => {
   const dom = boot(1, 1000); // seed 1: 10 spin pertama tanpa trigger FS
   try {

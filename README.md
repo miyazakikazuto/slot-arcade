@@ -17,6 +17,9 @@ jackpot & koin di layar hanya angka demo, bukan uang.
 - Toast kemenangan ala slot: MENANG BESAR (≥5× bet), MEGA WIN (≥15×), JACKPOT (≥30×).
 - **Free spin natural** dari 3/4/5 SCATTER (5/8/12 spin, kemenangan ×2).
 - Koin demo awal **5.000**, bonus gratis +500 (cooldown 60 detik) kalau habis.
+- **🪙 Tambah Koin**: tombol gratis **+10.000 koin demo** dengan cooldown 30 detik
+  (countdown tampil di tombol). Murni kredit demo — **bukan top-up / pembelian**.
+  Jumlah & cooldown bisa diubah lewat konstanta `ADD_COINS_AMOUNT` / `ADD_COINS_COOLDOWN_MS` di `game.js`.
 - Paytable modal, riwayat 10 spin terakhir, seed & nonce transparan.
 
 ---
@@ -112,6 +115,7 @@ klik SPIN / AUTO / Beli FS
 - ❌ Tidak ada deposit / penarikan / uang asli / pembelian koin.
 - ❌ Tidak ada koneksi pembayaran apa pun.
 - ✅ Koin = kredit demo di localStorage, bisa klaim bonus gratis (+500) kalau habis.
+- ✅ “Tambah koin” hanya menambah **koin demo** gratis dengan cooldown — bukan top-up uang.
 - ✅ “Beli Free Spin” hanya memotong **koin demo** — bukan pembayaran nyata.
 - ✅ Disclaimer "game demo" selalu tampil di UI.
 
