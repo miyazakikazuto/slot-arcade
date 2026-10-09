@@ -47,6 +47,16 @@
     <button id="spinBtn" class="btn btn-spin">SPIN</button>
     <button id="betUp" class="btn btn-sec" title="Naik bet">+</button>
     <button id="betMax" class="btn btn-sec">MAX</button>
+    <div class="auto-group">
+      <select id="autoCount" class="btn sel" title="Jumlah auto spin">
+        <option value="10">10x</option>
+        <option value="25">25x</option>
+        <option value="50">50x</option>
+        <option value="0">∞</option>
+      </select>
+      <button id="autoBtn" class="btn btn-sec">Auto</button>
+    </div>
+    <button id="buyFsBtn" class="btn btn-buy">Beli FS</button>
     <button id="paytableBtn" class="btn btn-sec">Paytable</button>
     <button id="bonusBtn" class="btn btn-bonus hidden">🎁 Klaim +500 koin</button>
   </section>
@@ -82,6 +92,9 @@
         <li>🌈 <b>WILD</b> menggantikan simbol apa pun (kecuali 🍭).</li>
         <li>🍭 <b>SCATTER Lollipop</b> di posisi mana pun: 3/4/5 → bayar 4×/20×/100× bet +
             Free Spin 5/8/12 (kemenangan ×2, retrigger +3).</li>
+        <li id="ruleBuy">🎟️ Beli Free Spin: bayar 170× bet → langsung 10 Free Spin.</li>
+        <li>▶ <b>Auto spin</b>: pilih 10/25/50/∞ lalu tekan AUTO — berhenti otomatis saat koin
+            kurang, bisa dihentikan kapan saja lewat tombol STOP.</li>
         <li>Semua koin adalah <b>kredit demo</b> — tanpa uang asli, tanpa pembelian.</li>
       </ul>
     </div>

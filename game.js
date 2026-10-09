@@ -9,10 +9,16 @@
   const E = window.SlotEngine;
   const STORAGE_KEY = 'lollipop-arcade:v1';
   const BET_LEVELS = [1, 2, 5, 10, 20]; // lineBet → totalBet = level x 10 payline
-  const START_COINS = 1000;
+  const START_COINS = 5000;
   const BONUS_AMOUNT = 500;
   const BONUS_COOLDOWN_MS = 60 * 1000;
   const FREE_SPINS_CAP = 50;
+  // Beli Free Spin: bayar FS_BUY_MULT x totalBet → FS_BUY_SPINS free spin langsung.
+  // EV terukur 10 FS (dengan retrigger, 20k sampel) ≈ 157.7 x totalBet → harga 170x (edge ~7%)
+  const FS_BUY_SPINS = 10;
+  const FS_BUY_MULT = 170;
+  const FS_DELAY = 650;   // jeda antar free spin (ms)
+  const AUTO_DELAY = 350; // jeda antar auto spin (ms)
 
   /* ---------------- state ---------------- */
   const defaultState = () => ({
@@ -28,6 +34,7 @@
 
   let state = load();
   let busy = false;
+  let autoLeft = null; // null = manual; angka = sisa auto spin; Infinity = ∞
 
   function load() {
     try {
@@ -61,6 +68,9 @@
   const fscountEl = $('fscount');
   const bonusBtn = $('bonusBtn');
   const spinBtn = $('spinBtn');
+  const autoBtn = $('autoBtn');
+  const autoCountEl = $('autoCount');
+  const buyFsBtn = $('buyFsBtn');
   const seedTextEl = $('seedText');
   const nonceTextEl = $('nonceText');
 
@@ -107,6 +117,10 @@
     }
     seedTextEl.textContent = String(state.seed).padStart(10, '0');
     nonceTextEl.textContent = state.nonce;
+    buyFsBtn.textContent = 'Beli FS · ' + buyCost().toLocaleString('id-ID');
+    buyFsBtn.disabled = busy || autoLeft !== null || state.coins < buyCost();
+    autoCountEl.disabled = busy || autoLeft !== null;
+    updateAutoBtn();
     updateBonusVisibility();
   }
 
@@ -220,8 +234,9 @@
   }
 
   /* ---------------- spin ---------------- */
+  const fastMode = () => window.__SLOT_FAST__ === true; // hook test: percepat jeda
   function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
+    return new Promise((r) => setTimeout(r, fastMode() ? Math.min(ms, 20) : ms));
   }
 
   async function runSingleSpin(isFree) {
@@ -264,7 +279,36 @@
     return res;
   }
 
+  /** Mainkan sisa free spin — dipakai spin normal, beli FS, dan retrigger */
+  async function runFreeSpinLoop() {
+    let played = 0;
+    while (state.freeSpins > 0 && played < FREE_SPINS_CAP) {
+      state.freeSpins--;
+      updateHud();
+      save();
+      await sleep(FS_DELAY);
+      await runSingleSpin(true);
+      played++;
+    }
+    state.freeSpins = 0;
+    // highlight menang dibiarkan sampai spin berikutnya (clearWins ada di runSingleSpin)
+  }
+
+  function buyCost() {
+    return FS_BUY_MULT * totalBet();
+  }
+
+  async function doBaseSpin() {
+    await runSingleSpin(false);
+    await runFreeSpinLoop();
+  }
+
+  /* ---------------- spin manual ---------------- */
   async function onSpin() {
+    if (autoLeft !== null) {
+      autoLeft = null; // SPIN/Spasi berfungsi sbg STOP saat auto berjalan
+      return;
+    }
     if (busy) return;
     if (state.freeSpins > 0) return; // free spin loop yang jalan
     if (state.coins < totalBet()) {
@@ -274,20 +318,79 @@
 
     busy = true;
     setButtons(true);
+    updateHud();
     try {
-      await runSingleSpin(false);
-      // loop free spin otomatis
-      let played = 0;
-      while (state.freeSpins > 0 && played < FREE_SPINS_CAP) {
-        state.freeSpins--;
-        updateHud();
-        save();
-        await sleep(650);
-        await runSingleSpin(true);
-        played++;
+      await doBaseSpin();
+    } finally {
+      busy = false;
+      setButtons(false);
+      updateHud();
+    }
+  }
+
+  /* ---------------- auto spin ---------------- */
+  function updateAutoBtn() {
+    if (autoLeft === null) {
+      autoBtn.textContent = 'Auto';
+      autoBtn.classList.remove('is-stop');
+      autoBtn.disabled = busy; // aktif lagi saat idle; saat manual/buy spin → disabled
+    } else {
+      autoBtn.textContent = autoLeft === Infinity ? 'STOP ∞' : 'STOP (' + autoLeft + ')';
+      autoBtn.classList.add('is-stop');
+      autoBtn.disabled = false; // tombol stop selalu bisa diklik
+    }
+  }
+
+  function startAuto() {
+    if (busy || autoLeft !== null) return;
+    if (state.coins < totalBet()) {
+      updateBonusVisibility();
+      return;
+    }
+    const n = Number(autoCountEl.value);
+    autoLeft = n > 0 ? n : Infinity;
+    updateAutoBtn();
+    runAuto();
+  }
+
+  async function runAuto() {
+    busy = true;
+    setButtons(true);
+    updateHud();
+    try {
+      while (autoLeft !== null && autoLeft > 0 && state.coins >= totalBet()) {
+        if (autoLeft !== Infinity) autoLeft--;
+        updateAutoBtn();
+        await doBaseSpin();
+        if (autoLeft === null || autoLeft === 0) break;
+        await sleep(AUTO_DELAY);
       }
-      state.freeSpins = 0;
-      // highlight menang dibiarkan sampai spin berikutnya (clearWins ada di runSingleSpin)
+    } finally {
+      autoLeft = null;
+      busy = false;
+      setButtons(false);
+      updateHud();
+    }
+  }
+
+  /* ---------------- beli free spin ---------------- */
+  async function buyFreeSpins() {
+    if (busy || autoLeft !== null) return;
+    const cost = buyCost();
+    if (state.coins < cost) {
+      toast('Koin kurang untuk beli FS');
+      updateBonusVisibility();
+      return;
+    }
+    busy = true;
+    setButtons(true);
+    try {
+      state.coins -= cost;
+      state.freeSpins = Math.min(FREE_SPINS_CAP, state.freeSpins + FS_BUY_SPINS);
+      updateHud();
+      save();
+      toast('🎟️ Beli FS: +' + FS_BUY_SPINS + ' free spin (−' + cost.toLocaleString('id-ID') + ')');
+      await runFreeSpinLoop();
     } finally {
       busy = false;
       setButtons(false);
@@ -300,7 +403,10 @@
     $('betUp').disabled = disabled;
     $('betDown').disabled = disabled;
     $('betMax').disabled = disabled;
-    spinBtn.textContent = disabled ? '…' : 'SPIN';
+    $('paytableBtn').disabled = disabled;
+    $('resetSeed').disabled = disabled;
+    spinBtn.textContent = disabled ? (autoLeft !== null ? 'AUTO…' : '…') : 'SPIN';
+    updateAutoBtn();
   }
 
   /* ---------------- kontrol ---------------- */
@@ -346,6 +452,12 @@
       );
     });
     $('ptableBody').innerHTML = rows.join('');
+    const ruleBuy = $('ruleBuy');
+    if (ruleBuy) {
+      ruleBuy.textContent = '🎟️ Beli Free Spin: bayar ' + FS_BUY_MULT + '× bet (' +
+        buyCost().toLocaleString('id-ID') + ' koin di bet sekarang) → langsung ' +
+        FS_BUY_SPINS + ' Free Spin (retrigger tetap +3). Harga berubah ikut bet.';
+    }
   }
 
   /* ---------------- init ---------------- */
@@ -366,6 +478,11 @@
     renderHistory();
 
     spinBtn.addEventListener('click', onSpin);
+    autoBtn.addEventListener('click', () => {
+      if (autoLeft !== null) autoLeft = null; // STOP
+      else startAuto();
+    });
+    buyFsBtn.addEventListener('click', buyFreeSpins);
     $('betUp').addEventListener('click', () => changeBet(1));
     $('betDown').addEventListener('click', () => changeBet(-1));
     $('betMax').addEventListener('click', () => {

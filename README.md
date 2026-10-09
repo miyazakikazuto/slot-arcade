@@ -3,6 +3,17 @@
 Game slot/arcade **free-to-play** untuk hiburan & belajar pemrograman game.
 **Bukan judi**: tidak ada deposit, tarik dana, uang asli, maupun pembelian koin.
 
+## Fitur
+
+- **Spin manual** (klik / tombol Spasi) dengan bet 10–200 koin per spin (5 level).
+- **Auto spin** 10 / 25 / 50 / ∞ — berhenti otomatis saat koin kurang, tombol berubah jadi
+  **STOP (n)**, bisa dihentikan kapan saja (tombol STOP atau Spasi).
+- **Beli Free Spin**: bayar **170× bet** → langsung **10 Free Spin** (retrigger +3 tetap jalan).
+  Harga dibuat dari pengukuran EV: 10 FS ≈ **157,7× bet** (20k sampel) → house edge ~7%.
+- **Free spin natural** dari 3/4/5 SCATTER (5/8/12 spin, kemenangan ×2).
+- Koin demo awal **5.000**, bonus gratis +500 (cooldown 60 detik) kalau habis.
+- Paytable modal, riwayat 10 spin terakhir, seed & nonce transparan.
+
 ---
 
 ## 1. Framework / Arsitektur
@@ -80,11 +91,14 @@ total = 42  →  P(SCATTER per posisi) = 2/42 ≈ 4.76%
 
 ### 2.6 Alur spin di UI
 ```
-klik SPIN → kurangi koin → hash(seed:nonce) → rng → engine.spin()
-         → build strip visual (isi acak + hasil akhir) → animasi scroll per reel
-           (stagger kiri→kanan, cubic-bezier) → await semua reel selesai
-         → engine.evaluate() → highlight sel menang → tambah koin → history
-         → jika freeSpins > 0 → loop spin gratis otomatis (tanpa potong koin)
+klik SPIN / AUTO / Beli FS
+  → (manual) kurangi koin; (beli FS) kurangi 170× bet + 10 FS; (auto) loop sisa counter
+  → hash(seed:nonce) → rng → engine.spin()
+  → build strip visual (isi acak + hasil akhir) → animasi scroll per reel
+    (stagger kiri→kanan, cubic-bezier) → await semua reel selesai
+  → engine.evaluate() → highlight sel menang → tambah koin → history
+  → jika freeSpins > 0 → runFreeSpinLoop() (tanpa potong koin, jeda 650ms, cap 50)
+  → auto? → lanjut spin berikutnya (jeda 350ms) selama counter > 0 & koin cukup
 ```
 
 ---
@@ -93,6 +107,7 @@ klik SPIN → kurangi koin → hash(seed:nonce) → rng → engine.spin()
 - ❌ Tidak ada deposit / penarikan / uang asli / pembelian koin.
 - ❌ Tidak ada koneksi pembayaran apa pun.
 - ✅ Koin = kredit demo di localStorage, bisa klaim bonus gratis (+500) kalau habis.
+- ✅ “Beli Free Spin” hanya memotong **koin demo** — bukan pembayaran nyata.
 - ✅ Disclaimer "game demo" selalu tampil di UI.
 
 ## 4. Cara main & test
@@ -101,9 +116,12 @@ klik SPIN → kurangi koin → hash(seed:nonce) → rng → engine.spin()
 # main: buka index.html langsung di browser (double-click), atau:
 npm start          # npx serve .
 
-# test (20 test: engine + UI smoke):
+# test (23 test: 16 engine + 7 UI smoke):
 npm test           # = node --test
 ```
+
+CI: GitHub Actions (`.github/workflows/test.yml`) menjalankan `npm ci` + syntax check +
+`npm test` otomatis di tiap push/PR ke `main`.
 
 ## 5. Roadmap
 - [ ] Audio (spin sfx, win jingle) via WebAudio.

@@ -151,6 +151,20 @@ body {
 }
 .btn-spin:active { transform: translateY(4px); box-shadow: 0 2px 0 #9c1460; }
 .btn-bonus { background: linear-gradient(180deg, #6bf178, #2fbf58); color: #06331a; }
+.btn-buy { background: linear-gradient(180deg, #b967ff, #7b2cbf); box-shadow: 0 4px 0 #5a189a; }
+.btn.is-stop { background: linear-gradient(180deg, #ff6b6b, #d00000); box-shadow: 0 4px 0 #9d0208; }
+.auto-group { display: flex; gap: 6px; align-items: stretch; }
+.sel {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 15px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.sel option { color: #2b1055; }
 .hint { min-height: 20px; margin: 0; font-size: 14px; color: var(--gold); }
 
 /* ---------- panels ---------- */

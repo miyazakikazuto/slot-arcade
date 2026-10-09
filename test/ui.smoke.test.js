@@ -24,12 +24,59 @@ function boot(seed, coins) {
     'lollipop-arcade:v1',
     JSON.stringify({ v: 1, coins, betIndex: 0, seed, nonce: 0, freeSpins: 0, history: [], lastBonus: 0 })
   );
+  w.__SLOT_FAST__ = true; // hook test: jeda antar spin dipangkas ke <=20ms
   w.eval(read('lib/engine.js'));
   w.eval(read('game.js'));
   return dom;
 }
 
 const num = (el) => Number(el.textContent.replace(/\D/g, ''));
+
+/** polling sampai kondisi terpenuhi */
+async function until(pred, label, timeout = 10000) {
+  const t0 = Date.now();
+  while (!pred()) {
+    if (Date.now() - t0 > timeout) throw new Error('timeout menunggu: ' + label);
+    await tick(25);
+  }
+}
+
+const isIdle = (d) =>
+  d.getElementById('spinBtn').textContent === 'SPIN' &&
+  d.getElementById('autoBtn').textContent === 'Auto';
+
+/** Replay beli FS di engine — meniru runFreeSpinLoop di game.js */
+function replayBuy(seed, startNonce, lineBet, totalBet) {
+  let nonce = startNonce;
+  let fsLeft = 10;
+  let played = 0;
+  let win = 0;
+  while (fsLeft > 0 && played < 50) {
+    fsLeft--;
+    nonce++;
+    const res = E.playSpin(E.rngFromString(seed + ':' + nonce), {
+      lineBet,
+      totalBet,
+      freeSpin: true,
+      retrigger: true,
+    });
+    win += res.totalWin;
+    played++;
+    if (res.freeSpinsAwarded > 0) fsLeft = Math.min(50, fsLeft + res.freeSpinsAwarded);
+  }
+  return { nonce, win, played };
+}
+
+/** Replay n spin base (tanpa FS) — dipakai test auto; seed 1 diverifikasi tanpa trigger */
+function replayBase(seed, fromNonce, count, lineBet, totalBet) {
+  let win = 0;
+  for (let n = fromNonce + 1; n <= fromNonce + count; n++) {
+    const res = E.playSpin(E.rngFromString(seed + ':' + n), { lineBet, totalBet });
+    assert.equal(res.freeSpinsAwarded, 0, 'seed auto-test harus tanpa trigger');
+    win += res.totalWin;
+  }
+  return win;
+}
 
 test('UI boot: reels ter-render, HUD & paytable terisi', async () => {
   const dom = boot(2, 1000);
@@ -45,6 +92,12 @@ test('UI boot: reels ter-render, HUD & paytable terisi', async () => {
     assert.equal(num(d.getElementById('coins')), 1000);
     assert.equal(num(d.getElementById('bet')), 10); // 1 x 10 payline
     assert.equal(d.querySelectorAll('#ptableBody tr').length, E.SYMBOL_ORDER.length);
+    // kontrol baru: auto spin + beli free spin
+    assert.equal(d.querySelectorAll('#autoCount option').length, 4);
+    assert.equal(d.getElementById('autoBtn').textContent, 'Auto');
+    assert.match(d.getElementById('buyFsBtn').textContent, /Beli FS/);
+    assert.match(d.getElementById('buyFsBtn').textContent, /1[.,]700/, 'harga 170x bet=1.700');
+    assert.match(d.getElementById('ruleBuy').textContent, /170× bet/, 'rule paytable terisi dinamis');
     assert.match(d.getElementById('hint').textContent, /demo/i);
     assert.match(d.querySelector('.footer').textContent, /tidak ada deposit/i);
   } finally {
@@ -147,6 +200,91 @@ test('koin habis → tombol bonus gratis muncul & memberi +500', async () => {
     const saved = JSON.parse(w.localStorage.getItem('lollipop-arcade:v1'));
     assert.equal(saved.coins, 500);
     assert.ok(saved.lastBonus > 0);
+    // beli FS tidak bisa saat koin < harga (1.700)
+    assert.ok(d.getElementById('buyFsBtn').disabled, 'tombol beli FS disabled saat koin 0');
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('auto spin 10x: jalan 10 spin, hasil = replay engine, berhenti rapi', async () => {
+  const dom = boot(1, 1000); // seed 1: 10 spin pertama tanpa trigger FS
+  try {
+    const d = dom.window.document;
+    await tick();
+
+    d.getElementById('autoCount').value = '10';
+    d.getElementById('autoBtn').click();
+    assert.match(d.getElementById('spinBtn').textContent, /AUTO/, 'spin menampilkan mode auto');
+
+    await until(() => isIdle(d), 'auto 10 selesai');
+
+    const expectedWin = replayBase(1, 0, 10, 1, 10);
+    assert.equal(num(d.getElementById('nonceText')), 10, 'tepat 10 spin');
+    assert.equal(num(d.getElementById('coins')), 1000 - 10 * 10 + expectedWin);
+    assert.equal(d.querySelectorAll('#history li').length, 10);
+    assert.equal(d.getElementById('autoBtn').textContent, 'Auto');
+    assert.equal(d.getElementById('spinBtn').textContent, 'SPIN');
+    assert.ok(d.getElementById('fsmode').classList.contains('hidden'));
+
+    const saved = JSON.parse(dom.window.localStorage.getItem('lollipop-arcade:v1'));
+    assert.equal(saved.nonce, 10);
+    assert.equal(saved.coins, 1000 - 100 + expectedWin);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('tombol STOP menghentikan auto spin lebih awal', async () => {
+  const dom = boot(1, 10000);
+  try {
+    const d = dom.window.document;
+    await tick();
+
+    d.getElementById('autoCount').value = '50';
+    d.getElementById('autoBtn').click();
+    await until(() => num(d.getElementById('nonceText')) >= 2, 'auto mulai berjalan');
+    assert.match(d.getElementById('autoBtn').textContent, /STOP/);
+
+    d.getElementById('autoBtn').click(); // STOP
+    await until(() => isIdle(d), 'auto berhenti');
+    const stopped = num(d.getElementById('nonceText'));
+    assert.ok(stopped < 50, `berhenti awal (nonce=${stopped})`);
+
+    await tick(150);
+    assert.equal(num(d.getElementById('nonceText')), stopped, 'tidak ada spin tambahan setelah STOP');
+    assert.equal(d.getElementById('autoBtn').textContent, 'Auto');
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('beli free spin: bayar 170x bet → 10 FS, kemenangan = replay engine', async () => {
+  const SEED = 424242;
+  const START = 5000;
+  const COST = 170 * 10; // 170 x totalBet(10)
+  const dom = boot(SEED, START);
+  try {
+    const d = dom.window.document;
+    await tick();
+    assert.equal(num(d.getElementById('coins')), START);
+
+    d.getElementById('buyFsBtn').click();
+    assert.match(d.getElementById('fsmode').textContent, /FREE SPIN/, 'banner FS langsung tampil');
+    await until(() => isIdle(d), 'beli FS selesai');
+
+    const expected = replayBuy(SEED, 0, 1, 10);
+    assert.equal(num(d.getElementById('nonceText')), expected.nonce, 'jumlah spin FS = replay');
+    assert.equal(num(d.getElementById('coins')), START - COST + expected.win);
+    assert.ok(expected.played >= 10, 'minimal 10 free spin termain');
+
+    // semua entri history = free spin (bet 0)
+    const saved = JSON.parse(dom.window.localStorage.getItem('lollipop-arcade:v1'));
+    assert.equal(saved.coins, START - COST + expected.win);
+    assert.equal(saved.freeSpins, 0, 'sisa FS habis');
+    assert.equal(saved.history.filter((h) => h.free).length, saved.history.length);
+    assert.ok(d.getElementById('fsmode').classList.contains('hidden'));
+    assert.ok(!d.getElementById('buyFsBtn').disabled, 'tombol beli aktif lagi setelah selesai');
   } finally {
     dom.window.close();
   }
