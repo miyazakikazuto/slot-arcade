@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🍭 Lollipop Arcade — Slot Demo Gratis</title>
-  <meta name="description" content="Game slot arcade free-to-play. Tanpa uang asli, tanpa deposit. Hanya untuk hiburan & belajar koding." />
+  <meta name="description" content="Game slot arcade free-to-play bergaya slot Indonesia. Tanpa uang asli, tanpa deposit. Hanya untuk hiburan & belajar koding." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,25 +15,32 @@
     <div class="brand">
       <span class="brand-icon">🍭</span>
       <div>
-        <h1>Lollipop Arcade</h1>
-        <p class="tagline">Slot demo gratis · tanpa uang asli · tanpa deposit</p>
+        <h1>LOLLIPOP ARCADE</h1>
+        <p class="tagline">Slot demo bergaya slot Indonesia · tanpa uang asli · tanpa deposit</p>
       </div>
     </div>
     <div class="hud">
       <div class="hud-item coins">
-        <span class="hud-label">Koin</span>
+        <span class="hud-label">💰 Saldo</span>
         <span id="coins" class="hud-value">0</span>
       </div>
       <div class="hud-item">
-        <span class="hud-label">Bet / spin</span>
+        <span class="hud-label">🎲 Total Bet</span>
         <span id="bet" class="hud-value">10</span>
       </div>
       <div class="hud-item">
-        <span class="hud-label">Menang</span>
+        <span class="hud-label">🏆 Menang</span>
         <span id="win" class="hud-value">0</span>
       </div>
     </div>
   </header>
+
+  <!-- Jackpot bar gaya slot lokal (angka DEMO, bukan uang) -->
+  <div class="jackpot-bar" title="Angka hiasan demo, bukan uang sungguhan">
+    <span class="jp-label">👑 JACKPOT <small>(DEMO)</small></span>
+    <span id="jackpot" class="jp-value">1.287.543.210</span>
+    <span class="jp-live">● LIVE</span>
+  </div>
 
   <div id="fsmode" class="fsmode hidden">🍀 FREE SPIN: <b id="fscount">0</b> tersisa</div>
 
@@ -56,7 +66,8 @@
       </select>
       <button id="autoBtn" class="btn btn-sec">Auto</button>
     </div>
-    <button id="buyFsBtn" class="btn btn-buy">Beli FS</button>
+    <button id="turboBtn" class="btn btn-sec" title="Percepat animasi">⚡ Turbo</button>
+    <button id="buyFsBtn" class="btn btn-buy">BELI FREESPIN</button>
     <button id="paytableBtn" class="btn btn-sec">Paytable</button>
     <button id="bonusBtn" class="btn btn-bonus hidden">🎁 Klaim +500 koin</button>
   </section>
@@ -65,11 +76,11 @@
 
   <section class="panels">
     <div class="panel">
-      <h2>Riwayat spin</h2>
+      <h2>📜 Riwayat Spin</h2>
       <ul id="history" class="history"><li class="empty">Belum ada spin.</li></ul>
     </div>
     <div class="panel">
-      <h2>Transparansi RNG</h2>
+      <h2>🔍 Transparansi RNG</h2>
       <p class="rng-line">Seed: <code id="seedText">—</code></p>
       <p class="rng-line">Nonce: <code id="nonceText">0</code></p>
       <button id="resetSeed" class="btn btn-sec">Seed baru</button>
@@ -82,7 +93,7 @@
   <div id="paytable" class="modal hidden">
     <div class="modal-card">
       <button id="paytableClose" class="modal-close">×</button>
-      <h2>Paytable</h2>
+      <h2>💎 TABEL PEMBAYARAN</h2>
       <table class="ptable">
         <thead><tr><th>Simbol</th><th>3</th><th>4</th><th>5</th></tr></thead>
         <tbody id="ptableBody"></tbody>
@@ -92,9 +103,10 @@
         <li>🌈 <b>WILD</b> menggantikan simbol apa pun (kecuali 🍭).</li>
         <li>🍭 <b>SCATTER Lollipop</b> di posisi mana pun: 3/4/5 → bayar 4×/20×/100× bet +
             Free Spin 5/8/12 (kemenangan ×2, retrigger +3).</li>
-        <li id="ruleBuy">🎟️ Beli Free Spin: bayar 170× bet → langsung 10 Free Spin.</li>
+        <li id="ruleBuy">🎟️ Beli Freespin: bayar 170× bet → langsung 10 Free Spin.</li>
         <li>▶ <b>Auto spin</b>: pilih 10/25/50/∞ lalu tekan AUTO — berhenti otomatis saat koin
             kurang, bisa dihentikan kapan saja lewat tombol STOP.</li>
+        <li>⚡ <b>Turbo</b>: percepat animasi reel &amp; jeda antar spin.</li>
         <li>Semua koin adalah <b>kredit demo</b> — tanpa uang asli, tanpa pembelian.</li>
       </ul>
     </div>
@@ -102,7 +114,7 @@
 
   <footer class="footer">
     <p><b>Game demo untuk hiburan &amp; belajar pemrograman.</b> Bukan judi: tidak ada deposit,
-      tarik dana, maupun uang asli. Koin tidak bisa diuangkan.</p>
+      tarik dana, maupun uang asli. Koin dan jackpot di halaman ini tidak bisa diuangkan.</p>
   </footer>
 
   <script src="lib/engine.js"></script>

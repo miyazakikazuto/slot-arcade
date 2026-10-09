@@ -2,14 +2,19 @@
 
 Game slot/arcade **free-to-play** untuk hiburan & belajar pemrograman game.
 **Bukan judi**: tidak ada deposit, tarik dana, uang asli, maupun pembelian koin.
+Tampilan bergaya **slot Indonesia** (merah–emas, Jackpot bar, label Indonesia) —
+jackpot & koin di layar hanya angka demo, bukan uang.
 
 ## Fitur
 
 - **Spin manual** (klik / tombol Spasi) dengan bet 10–200 koin per spin (5 level).
 - **Auto spin** 10 / 25 / 50 / ∞ — berhenti otomatis saat koin kurang, tombol berubah jadi
   **STOP (n)**, bisa dihentikan kapan saja (tombol STOP atau Spasi).
-- **Beli Free Spin**: bayar **170× bet** → langsung **10 Free Spin** (retrigger +3 tetap jalan).
+- **Beli Freespin**: bayar **170× bet** → langsung **10 Free Spin** (retrigger +3 tetap jalan).
   Harga dibuat dari pengukuran EV: 10 FS ≈ **157,7× bet** (20k sampel) → house edge ~7%.
+- **⚡ Turbo**: percepat animasi reel & jeda antar spin (tombol toggle).
+- **Jackpot bar (DEMO)**: angka hiasan yang naik pelan — bukan uang, tidak bisa diuangkan.
+- Toast kemenangan ala slot: MENANG BESAR (≥5× bet), MEGA WIN (≥15×), JACKPOT (≥30×).
 - **Free spin natural** dari 3/4/5 SCATTER (5/8/12 spin, kemenangan ×2).
 - Koin demo awal **5.000**, bonus gratis +500 (cooldown 60 detik) kalau habis.
 - Paytable modal, riwayat 10 spin terakhir, seed & nonce transparan.

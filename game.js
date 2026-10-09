@@ -71,6 +71,10 @@
   const autoBtn = $('autoBtn');
   const autoCountEl = $('autoCount');
   const buyFsBtn = $('buyFsBtn');
+  const turboBtn = $('turboBtn');
+  const jackpotEl = $('jackpot');
+
+  let turbo = false; // percepat animasi (gaya slot: tombol Turbo)
   const seedTextEl = $('seedText');
   const nonceTextEl = $('nonceText');
 
@@ -117,7 +121,7 @@
     }
     seedTextEl.textContent = String(state.seed).padStart(10, '0');
     nonceTextEl.textContent = state.nonce;
-    buyFsBtn.textContent = 'Beli FS · ' + buyCost().toLocaleString('id-ID');
+    buyFsBtn.textContent = 'BELI FREESPIN · ' + buyCost().toLocaleString('id-ID');
     buyFsBtn.disabled = busy || autoLeft !== null || state.coins < buyCost();
     autoCountEl.disabled = busy || autoLeft !== null;
     updateAutoBtn();
@@ -186,6 +190,7 @@
           }
 
           // isi acak (visual) + 3 hasil akhir di bawah
+          const dur = turbo ? 240 + i * 60 : 650 + i * 230; // turbo = animasi cepat
           const fillerCount = 8 + i * 5;
           const parts = [];
           for (let k = 0; k < fillerCount; k++) parts.push(cellHtml(randSym()));
@@ -200,7 +205,7 @@
               { transform: 'translateY(' + -offset + 'px)' },
             ],
             {
-              duration: 650 + i * 230,
+              duration: dur,
               easing: 'cubic-bezier(.15,.85,.25,1)',
               fill: 'forwards',
             }
@@ -212,7 +217,7 @@
             resolve();
           };
           if (anim.finished && anim.finished.then) anim.finished.then(done, done);
-          else setTimeout(done, 650 + i * 230);
+          else setTimeout(done, dur);
         })
       );
     }
@@ -261,10 +266,18 @@
     if (res.totalWin > 0) {
       state.coins += res.totalWin;
       highlightWins(res);
+      const fmt = res.totalWin.toLocaleString('id-ID');
+      const mult = res.totalWin / Math.max(1, bet);
       if (res.scatterCount >= 3 && res.freeSpinsAwarded > 0) {
-        toast('🍭 FREE SPIN +' + res.freeSpinsAwarded + '!');
+        toast('FREE SPIN +' + res.freeSpinsAwarded + '!');
+      } else if (mult >= 30) {
+        toast('JACKPOT! +' + fmt);
+      } else if (mult >= 15) {
+        toast('MEGA WIN! +' + fmt);
+      } else if (mult >= 5) {
+        toast('MENANG BESAR! +' + fmt);
       } else {
-        toast('MENANG ' + res.totalWin.toLocaleString('id-ID'));
+        toast('MENANG ' + fmt);
       }
     }
 
@@ -286,7 +299,7 @@
       state.freeSpins--;
       updateHud();
       save();
-      await sleep(FS_DELAY);
+      await sleep(turbo ? 0 : FS_DELAY);
       await runSingleSpin(true);
       played++;
     }
@@ -363,7 +376,7 @@
         updateAutoBtn();
         await doBaseSpin();
         if (autoLeft === null || autoLeft === 0) break;
-        await sleep(AUTO_DELAY);
+        await sleep(turbo ? 60 : AUTO_DELAY);
       }
     } finally {
       autoLeft = null;
@@ -389,7 +402,7 @@
       state.freeSpins = Math.min(FREE_SPINS_CAP, state.freeSpins + FS_BUY_SPINS);
       updateHud();
       save();
-      toast('🎟️ Beli FS: +' + FS_BUY_SPINS + ' free spin (−' + cost.toLocaleString('id-ID') + ')');
+      toast('🎟️ BELI FREESPIN: +' + FS_BUY_SPINS + ' (−' + cost.toLocaleString('id-ID') + ')');
       await runFreeSpinLoop();
     } finally {
       busy = false;
@@ -454,7 +467,7 @@
     $('ptableBody').innerHTML = rows.join('');
     const ruleBuy = $('ruleBuy');
     if (ruleBuy) {
-      ruleBuy.textContent = '🎟️ Beli Free Spin: bayar ' + FS_BUY_MULT + '× bet (' +
+      ruleBuy.textContent = '🎟️ Beli Freespin: bayar ' + FS_BUY_MULT + '× bet (' +
         buyCost().toLocaleString('id-ID') + ' koin di bet sekarang) → langsung ' +
         FS_BUY_SPINS + ' Free Spin (retrigger tetap +3). Harga berubah ikut bet.';
     }
@@ -483,6 +496,17 @@
       else startAuto();
     });
     buyFsBtn.addEventListener('click', buyFreeSpins);
+    turboBtn.addEventListener('click', () => {
+      turbo = !turbo;
+      turboBtn.classList.toggle('is-on', turbo);
+      toast(turbo ? '⚡ TURBO ON' : 'Turbo off');
+    });
+    // jackpot bar: angka hiasan demo (bukan uang), naik pelan
+    let jackpotNum = 1287543210;
+    setInterval(() => {
+      jackpotNum += 1 + Math.floor(Math.random() * 50000);
+      jackpotEl.textContent = jackpotNum.toLocaleString('id-ID');
+    }, 3000);
     $('betUp').addEventListener('click', () => changeBet(1));
     $('betDown').addEventListener('click', () => changeBet(-1));
     $('betMax').addEventListener('click', () => {

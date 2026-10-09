@@ -95,9 +95,12 @@ test('UI boot: reels ter-render, HUD & paytable terisi', async () => {
     // kontrol baru: auto spin + beli free spin
     assert.equal(d.querySelectorAll('#autoCount option').length, 4);
     assert.equal(d.getElementById('autoBtn').textContent, 'Auto');
-    assert.match(d.getElementById('buyFsBtn').textContent, /Beli FS/);
+    assert.match(d.getElementById('buyFsBtn').textContent, /BELI FREESPIN/);
     assert.match(d.getElementById('buyFsBtn').textContent, /1[.,]700/, 'harga 170x bet=1.700');
     assert.match(d.getElementById('ruleBuy').textContent, /170× bet/, 'rule paytable terisi dinamis');
+    // skin slot Indonesia: jackpot bar & turbo ada
+    assert.match(d.getElementById('jackpot').textContent, /[\d.]+/, 'jackpot bar terisi');
+    assert.match(d.getElementById('turboBtn').textContent, /Turbo/);
     assert.match(d.getElementById('hint').textContent, /demo/i);
     assert.match(d.querySelector('.footer').textContent, /tidak ada deposit/i);
   } finally {
@@ -177,6 +180,14 @@ test('kontrol bet & modal paytable', async () => {
     assert.ok(!modal.classList.contains('hidden'));
     d.getElementById('paytableClose').click();
     assert.ok(modal.classList.contains('hidden'));
+
+    // toggle turbo
+    const turboBtn = d.getElementById('turboBtn');
+    assert.ok(!turboBtn.classList.contains('is-on'));
+    turboBtn.click();
+    assert.ok(turboBtn.classList.contains('is-on'), 'turbo aktif');
+    turboBtn.click();
+    assert.ok(!turboBtn.classList.contains('is-on'), 'turbo nonaktif lagi');
   } finally {
     dom.window.close();
   }
